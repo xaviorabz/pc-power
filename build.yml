@@ -1,0 +1,51 @@
+# Builds PCPower.exe on GitHub's Windows machines and publishes it as a release.
+# Trigger: push a tag like v1.2.0  (or run it by hand from the Actions tab).
+# Every installed copy with "update_repo" set to this repo updates itself within 12 hours.
+name: Build PCPower.exe
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install packages
+        run: python -m pip install --upgrade pyinstaller pystray pillow qrcode pywin32 psutil
+
+      - name: Stamp version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $v = "${{ github.ref_name }}".TrimStart("v")
+          (Get-Content remote_shutdown.py -Raw) -replace 'APP_VERSION = "[^"]*"', "APP_VERSION = `"$v`"" |
+            Set-Content remote_shutdown.py -NoNewline -Encoding utf8
+
+      - name: Build
+        run: |
+          python remote_shutdown.py --make-icon
+          python -m PyInstaller --noconfirm --clean --onefile --noconsole --name PCPower --icon pcpower.ico --hidden-import pystray._win32 --hidden-import win32timezone remote_shutdown.py
+
+      - name: Upload build (manual runs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: PCPower
+          path: dist/PCPower.exe
+
+      - name: Publish release (tag pushes)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/PCPower.exe
+          generate_release_notes: true
