@@ -1,0 +1,6 @@
+pcpower-data/
+dist/
+build/
+*.spec
+pcpower.ico
+__pycache__/
