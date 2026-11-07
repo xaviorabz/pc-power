@@ -63,7 +63,7 @@ DEFAULTS = {
     "bedtime_unused_minutes": 15,     #   "nobody using" = no mouse/keyboard for this long
     "push_notifications": True,       # ntfy push notifications (PC turned on, shutting down, ...)
     "ntfy_server": "https://ntfy.sh",
-    "update_repo": "",                # "github-user/repo" to auto-update from its releases
+    "update_repo": "xaviorabz/pcpower",              # "github-user/repo" to auto-update from its releases
     "auto_update": True,
 }
 
